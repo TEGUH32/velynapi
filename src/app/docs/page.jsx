@@ -14,92 +14,127 @@ const inter = Inter({ subsets: ["latin"] });
 export default function Home() {
   const swaggerUIConfig = {
     defaultModelRendering: "model",
-    docExpansion: "none", 
+    docExpansion: "list", // Diubah agar terlihat lebih rapi saat load
+    persistAuthorization: true,
   };
 
   useEffect(() => {
     const style = document.createElement("style");
     style.innerHTML = `
+      /* Modern Background & Body */
       body {
-        background-color: #ffffff !important;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        margin: 0;
         font-family: 'Inter', sans-serif;
       }
 
+      /* Container Card Styling */
+      .swagger-ui {
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255,255,255,0.5);
+        overflow: hidden;
+      }
+
+      /* Header / Info Section */
       .swagger-ui .info {
-        text-align: center;
-        margin-bottom: 20px;
+        margin: 0;
+        padding: 30px 20px;
+        background: #fff;
+        border-bottom: 1px solid #eee;
       }
 
       .swagger-ui .info h1 {
-        font-size: 26px;
-        font-weight: bold;
-        color: #222;
+        font-size: 32px;
+        font-weight: 800;
+        color: #10b981; /* Hijau Emerald Modern */
+        margin-bottom: 10px;
+        letter-spacing: -0.5px;
       }
 
       .swagger-ui .info p {
-        font-size: 14px;
-        color: #555;
+        font-size: 16px;
+        color: #64748b;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.5;
       }
 
+      /* Styling tombol & link */
       .swagger-ui .info a {
-        color: #007bff;
-        font-weight: bold;
+        color: #10b981;
+        font-weight: 600;
         text-decoration: none;
+        transition: color 0.2s;
+      }
+      
+      .swagger-ui .info a:hover {
+        color: #059669;
+        text-decoration: underline;
       }
 
+      /* Operation Blocks (Endpoints) */
       .swagger-ui .opblock {
         border-radius: 8px;
-        border: 1px solid #ddd;
-        margin-bottom: 10px;
-        transition: all 0.3s ease-in-out;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        border: 1px solid #e2e8f0;
+        background: #fff;
       }
 
       .swagger-ui .opblock:hover {
-        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.08);
+        transform: translateY(-1px);
+        transition: all 0.2s ease;
       }
 
+      /* Tag Section Headers */
       .swagger-ui .opblock-tag {
-        font-size: 18px;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 5px;
-        padding-left: 10px;
+        font-size: 20px;
+        color: #1e293b;
+        font-weight: 700;
+        border-bottom: 2px solid #e2e8f0;
+        padding-bottom: 10px;
+        margin-top: 20px;
       }
 
-      .swagger-ui .opblock-summary {
-        display: flex;
-        align-items: center;
-        padding: 10px;
-        border-radius: 5px;
-        font-weight: bold;
-      }
-
+      /* Methods (GET, POST) */
       .swagger-ui .opblock-summary-method {
-        border-radius: 5px;
-        font-size: 14px;
-        font-weight: bold;
-        padding: 6px 12px;
-        min-width: 60px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 6px 15px;
+        min-width: 70px;
         text-align: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
       }
 
       .swagger-ui .opblock-summary-method-get {
-        background-color: #007bff;
+        background-color: #3b82f6; /* Biru */
         color: white;
       }
 
       .swagger-ui .opblock-summary-method-post {
-        background-color: #28a745;
+        background-color: #10b981; /* Hijau */
         color: white;
       }
 
       .swagger-ui .opblock-summary-path {
-        font-size: 14px;
-        color: #222;
+        font-family: monospace;
+        font-size: 15px;
+        color: #334155;
+        font-weight: 600;
+        padding-left: 10px;
       }
-
-      .swagger-ui .opblock-summary-control {
-        margin-left: auto;
+      
+      /* Try it out button styling */
+      .swagger-ui .btn {
+        background-color: #10b981;
+        border-color: #10b981;
+      }
+      .swagger-ui .btn:hover {
+        background-color: #059669;
       }
     `;
     document.head.appendChild(style);
@@ -111,12 +146,23 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>VelynAPI Documentation</title>
-        <meta name="title" content="VelynAPI - Documentation" />
-        <meta name="description" content="VelynAPI is a free, simple REST API for everyone. Enjoy using it without any cost!" />
-        <meta property="og:title" content="VelynAPI - Documentation" />
-        <meta property="og:description" content="VelynAPI is a free, simple REST API for everyone." />
+        <title>Teguh API Documentation</title>
+        <link rel="icon" href="/favicon.ico" /> 
+        <meta name="title" content="Teguh API - Free REST API" />
+        <meta name="description" content="Teguh API menyediakan layanan REST API gratis, cepat, dan tanpa limit untuk kebutuhan proyek Anda." />
+        
+        {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://teguhapi.vercel.app/" />
+        <meta property="og:title" content="Teguh API - Documentation" />
+        <meta property="og:description" content="Solusi API gratis, cepat, dan andal untuk developer Indonesia." />
+        <meta property="og:image" content="/og-image.png" />
+
+        {/* Twitter */}
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:title" content="Teguh API - Documentation" />
+        <meta property="twitter:description" content="Solusi API gratis, cepat, dan andal." />
+        <meta property="twitter:image" content="/og-image.png" />
       </Head>
 
       <Script
@@ -126,17 +172,23 @@ export default function Home() {
           __html: JSON.stringify({
             "@context": "http://schema.org",
             "@type": "WebSite",
-            "name": "VelynAPI",
-            "url": "https://apivelyn.vercel.app",
-            "description": "VelynAPI is a free, simple REST API for everyone.",
+            "name": "Teguh API",
+            "url": "https://teguhapi.vercel.app",
+            "description": "Teguh API is a free, simple REST API for everyone.",
+            "author": {
+              "@type": "Person",
+              "name": "Teguh"
+            }
           }),
         }}
       />
 
-      <main className={`p-6 ${inter.className}`}>
+      <main className={`p-4 md:p-10 ${inter.className}`}>
         <Analytics />
         <SpeedInsights />
-        <div className="bg-white shadow-md rounded-lg p-4">
+        
+        {/* Container Dokumentasi dengan Style Modern */}
+        <div className="max-w-7xl mx-auto bg-white/80 backdrop-blur-md shadow-xl rounded-2xl p-2 md:p-6 border border-white/50">
           <SwaggerUI spec={swaggerConfig} {...swaggerUIConfig} />
         </div>
       </main>
