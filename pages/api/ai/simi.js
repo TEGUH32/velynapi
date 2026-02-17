@@ -4,7 +4,7 @@ import axios from "axios";
 export default async function handler(req, res) {
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     // Handle preflight
@@ -12,17 +12,25 @@ export default async function handler(req, res) {
         return res.status(200).end();
     }
 
-    // Hanya izinkan POST
-    if (req.method !== "POST") {
+    // Izinkan GET dan POST
+    if (req.method !== "GET" && req.method !== "POST") {
         return res.status(405).json({
             status: false,
             creator: CREATOR,
-            error: "Method Not Allowed",
+            error: "Method Not Allowed. Use GET or POST",
         });
     }
 
-    // Ambil prompt dari body (bukan query)
-    const { prompt, language = 'id' } = req.body;
+    // Ambil prompt dari query (GET) atau body (POST)
+    let prompt, language = 'id';
+    
+    if (req.method === "GET") {
+        prompt = req.query.prompt;
+        language = req.query.language || 'id';
+    } else {
+        prompt = req.body?.prompt;
+        language = req.body?.language || 'id';
+    }
     
     // Validasi input
     if (!prompt) {
@@ -34,7 +42,7 @@ export default async function handler(req, res) {
     }
 
     try {
-        console.log("Processing SimSimi request:", { prompt, language });
+        console.log("Processing SimSimi request:", { prompt, language, method: req.method });
         const data = await simSimi(prompt, language);
         
         res.status(200).json({
@@ -43,14 +51,12 @@ export default async function handler(req, res) {
             data: data,
         });
     } catch (error) {
-        // Log error detail
         console.error("SimSimi Error:", {
             message: error.message,
             response: error.response?.data,
             status: error.response?.status
         });
         
-        // Kirim response error yang lebih informatif
         res.status(error.response?.status || 500).json({
             status: false,
             creator: CREATOR,
@@ -61,7 +67,6 @@ export default async function handler(req, res) {
 
 async function simSimi(text, language = 'id') {
     try {
-        // Buat URLSearchParams dengan benar
         const params = new URLSearchParams();
         params.append('text', text);
         params.append('lc', language);
@@ -69,20 +74,19 @@ async function simSimi(text, language = 'id') {
         console.log("Sending to SimSimi API:", { text, language });
         
         const { data } = await axios.post("https://api.simsimi.vn/v1/simtalk", 
-            params.toString(), // Jangan panggil .toString() dua kali
+            params.toString(),
             {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                     'Accept': 'application/json',
                 },
-                timeout: 10000 // 10 detik timeout
+                timeout: 10000
             }
         );
         
         console.log("SimSimi API Response:", data);
         
-        // Validasi response
         if (!data || !data.message) {
             throw new Error("Invalid response from SimSimi API");
         }
@@ -96,7 +100,6 @@ async function simSimi(text, language = 'id') {
             status: error.response?.status
         });
         
-        // Handle specific error cases
         if (error.response?.status === 404) {
             throw new Error("SimSimi API endpoint not found");
         } else if (error.code === 'ECONNABORTED') {
