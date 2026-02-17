@@ -2,31 +2,22 @@ import { API_KEY, CREATOR } from "../../../settings";
 import axios from "axios";
 
 export default async function handler(req, res) {
-    // 1. Validasi Method
-    if (req.method !== "POST") {
-        return res.status(405).json({
-            status: false,
-            creator: CREATOR,
-            error: "Method Not Allowed, use POST",
-        });
-    }
+    // 1. Ambil prompt dari QUERY (untuk GET) atau BODY (untuk POST)
+    // Kini bisa diakses via Browser: /api/simi?prompt=halo
+    const { prompt, lang = 'id' } = req.method === 'GET' ? req.query : req.body;
 
-    // 2. Ambil data dari body (bukan query) untuk method POST
-    const { prompt, lang = 'id' } = req.body;
-
-    // 3. Validasi Input
+    // 2. Validasi Input
     if (!prompt) {
         return res.status(400).json({
             status: false,
             creator: CREATOR,
-            error: "Parameter 'prompt' is required in body",
+            error: "Parameter 'prompt' is required",
         });
     }
 
     try {
         const data = await simSimi(prompt, lang);
         
-        // 4. Validasi hasil data sebelum dikirim
         if (!data) {
             return res.status(404).json({
                 status: false,
@@ -66,14 +57,14 @@ async function simSimi(text, language = 'id') {
             }
         );
 
-        // 5. Cek apakah response memiliki pesan
         if (data && data.message) {
             return data.message;
         } else {
+            // Jika API merespon tapi tidak ada message
             throw new Error("Invalid response structure from API");
         }
     } catch (err) {
-        // Tangkap error spesifik dari Axios (misalnya 429 Too Many Requests atau 500)
+        // Tangkap error spesifik dari Axios
         if (err.response) {
             console.error("SimSimi API Error:", err.response.status, err.response.data);
             throw new Error(`SimSimi API Error: ${err.response.status}`);
