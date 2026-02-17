@@ -2,11 +2,20 @@ import { API_KEY, CREATOR } from "../../../settings";
 import axios from "axios";
 
 export default async function handler(req, res) {
-    // 1. Ambil prompt dari QUERY (untuk GET) atau BODY (untuk POST)
-    // Kini bisa diakses via Browser: /api/simi?prompt=halo
+    // PERBAIKAN: Izinkan GET dan POST
+    // Jika method bukan GET atau POST, tolak
+    if (!['GET', 'POST'].includes(req.method)) {
+        return res.status(405).json({
+            status: false,
+            creator: CREATOR,
+            error: "Method Not Allowed",
+        });
+    }
+
+    // PERBAIKAN: Ambil data dinamis
+    // Jika GET, ambil dari req.query. Jika POST, ambil dari req.body.
     const { prompt, lang = 'id' } = req.method === 'GET' ? req.query : req.body;
 
-    // 2. Validasi Input
     if (!prompt) {
         return res.status(400).json({
             status: false,
@@ -17,7 +26,7 @@ export default async function handler(req, res) {
 
     try {
         const data = await simSimi(prompt, lang);
-        
+
         if (!data) {
             return res.status(404).json({
                 status: false,
@@ -44,12 +53,11 @@ export default async function handler(req, res) {
 async function simSimi(text, language = 'id') {
     try {
         const { data } = await axios.post(
-            "https://api.simsimi.vn/v1/simtalk", 
+            "https://api.simsimi.vn/v1/simtalk",
             new URLSearchParams({
                 text,
                 lc: language
-            }).toString(), 
-            {
+            }).toString(), {
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -60,11 +68,9 @@ async function simSimi(text, language = 'id') {
         if (data && data.message) {
             return data.message;
         } else {
-            // Jika API merespon tapi tidak ada message
             throw new Error("Invalid response structure from API");
         }
     } catch (err) {
-        // Tangkap error spesifik dari Axios
         if (err.response) {
             console.error("SimSimi API Error:", err.response.status, err.response.data);
             throw new Error(`SimSimi API Error: ${err.response.status}`);
